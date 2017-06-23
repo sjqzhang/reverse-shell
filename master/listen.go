@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 
@@ -13,7 +12,8 @@ import (
 )
 
 type onConnectMaster struct {
-	stdinChannel chan []byte
+	stdinChannel  chan []byte
+	stdoutChannel chan []byte
 }
 
 func (h onConnectMaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +22,7 @@ func (h onConnectMaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		common.Logger.Errorf("Error while upgrading: %s", err)
 		return
 	}
-	log.Printf("New incoming connection: starting a new session")
+	h.stdoutChannel <- []byte("New incoming connection: starting a new session")
 	m := message.CreateProcess{
 		CommandLine: "bash --norc",
 	}
@@ -37,6 +37,10 @@ func (h onConnectMaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				common.Logger.Debugf("Exiting stdin to conn relay")
 				return
 			case msg := <-h.stdinChannel:
+				if processId == "" {
+					h.stdoutChannel <- []byte("Session is not ready")
+					return
+				}
 				m := message.ExecuteCommand{
 					Id:      processId,
 					Command: msg,
@@ -59,10 +63,10 @@ func (h onConnectMaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			case *message.ProcessOutput:
 				os.Stdout.Write(v.Data)
 			case *message.ProcessCreated:
-				log.Printf("New session is named: %s\n", v.Id)
+				h.stdoutChannel <- []byte(fmt.Sprintf("New session is named: %s\n", v.Id))
 				processId = v.Id
 			case *message.ProcessTerminated:
-				log.Printf("Session closed: %s\n", v.Id)
+				h.stdoutChannel <- []byte(fmt.Sprintf("Session closed: %s\n", v.Id))
 				done <- true
 				//Stdin should write in neutral channel
 				return

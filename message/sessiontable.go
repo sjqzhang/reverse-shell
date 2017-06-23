@@ -3,6 +3,8 @@ package message
 import "strings"
 
 type SessionTable struct {
+	Hostname string
+	Arch     string
 	Sessions []string
 }
 

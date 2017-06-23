@@ -169,3 +169,4 @@ Available commands:
 * add scp-like commands
 * improve logging messages
 * read variables from environment
+* have agent send its IP  and rendez vous showing the proxy client one
