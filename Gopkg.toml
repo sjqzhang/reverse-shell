@@ -1,0 +1,19 @@
+
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+
+[[constraint]]
+  name = "github.com/golang/glog"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/jessevdk/go-flags"
+  version = "v1.2.0"
+
+[[constraint]]
+  name = "github.com/gorilla/websocket"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/docker/docker"
+  branch = "master"
