@@ -1,6 +1,10 @@
 package main
 
-import "github.com/gorilla/websocket"
+import (
+	"sync"
+
+	"github.com/gorilla/websocket"
+)
 
 type SessionState int
 
@@ -18,6 +22,7 @@ type Session struct {
 }
 
 type SessionTable struct {
+	sync.Mutex
 	sessionTable map[string]*Session
 }
 
@@ -40,18 +45,26 @@ func NewSessionTable() SessionTable {
 }
 
 func (s *SessionTable) AddSession(sess *Session) {
+	s.Lock()
+	defer s.Unlock()
 	s.sessionTable[sess.Id] = sess
 }
 
 func (s *SessionTable) AttachToSession(id string, conn *websocket.Conn) {
+	s.Lock()
+	defer s.Unlock()
 	s.sessionTable[id].masterConn = append(s.sessionTable[id].masterConn, conn)
 }
 
 func (s *SessionTable) FindSession(session string) *Session {
+	s.Lock()
+	defer s.Unlock()
 	return s.sessionTable[session]
 }
 
 func (s *SessionTable) FindSessionByAgent(sconn *websocket.Conn) []*Session {
+	s.Lock()
+	defer s.Unlock()
 	var w []*Session
 	for _, v := range s.sessionTable {
 		if v.agentConn == sconn {
