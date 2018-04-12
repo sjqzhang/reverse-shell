@@ -27,7 +27,7 @@ func (s *ProcessTable) New(id string, command string) *Process {
 
 func (s *ProcessTable) List() []string {
 	s.Lock()
-	defer processes.Unlock()
+	defer s.Unlock()
 	keys := make([]string, 0, len(s.processes))
 	for k := range s.processes {
 		keys = append(keys, k)
